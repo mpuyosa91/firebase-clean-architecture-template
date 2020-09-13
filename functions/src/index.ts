@@ -1,9 +1,9 @@
-import * as functions from 'firebase-functions';
+import { functions } from './firebase';
 
-// // Start writing Firebase Functions
-// // https://firebase.google.com/docs/functions/typescript
-//
-// export const helloWorld = functions.https.onRequest((request, response) => {
-//   functions.logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+export { createDummyEntity } from './dummy/DummyFirestoreController';
+export { onCreateDummyEntity } from './dummy/DummyFirestoreTrigger';
+
+export const helloWorld = functions.https.onRequest((request, response) => {
+  functions.logger.info('Hello logs!', { structuredData: true });
+  response.send('Hello from Firebase!');
+});

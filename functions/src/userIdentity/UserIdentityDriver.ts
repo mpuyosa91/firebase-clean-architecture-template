@@ -1,16 +1,17 @@
-import { IUserIdentityExternalInterface } from "../app/userIdentity/adapters/IUserIdentityExternalInterface";
+import { IUserIdentityExternalInterface } from '../app/userIdentity/adapters/IUserIdentityExternalInterface';
 import {
   IUserIdentityDataEntity,
   IUserIdentityEntity,
   UserIdentityDataRoleEnum,
-} from "../app/userIdentity/domain/UserIdentityEntity";
-import { admin } from "../firebase";
+} from '../app/userIdentity/domain/UserIdentityEntity';
+import { admin } from '../firebase';
 
+// tslint:disable: object-literal-sort-keys
 export class UserIdentityDriver implements IUserIdentityExternalInterface {
   private static defaultUserIdentityData: IUserIdentityDataEntity = {
-    firstName: "",
-    lastName: "",
-    email: "",
+    email: '',
+    firstName: '',
+    lastName: '',
   };
 
   public async getUser(userId: string): Promise<IUserIdentityEntity | null> {
@@ -20,16 +21,16 @@ export class UserIdentityDriver implements IUserIdentityExternalInterface {
         firebaseUser.customClaims || UserIdentityDriver.defaultUserIdentityData;
       const customClaimRole = customClaims.role as string;
       return {
-        data: {
-          firstName: customClaims.firstName as string | "",
-          lastName: customClaims.lastName as string | "",
-          email: customClaims.email as string | "",
-        },
+        id: userId,
         role:
           UserIdentityDataRoleEnum[
             customClaimRole as keyof typeof UserIdentityDataRoleEnum
           ],
-        id: userId,
+        data: {
+          email: customClaims.email as string | '',
+          firstName: customClaims.firstName as string | '',
+          lastName: customClaims.lastName as string | '',
+        },
       };
     } catch (err) {
       return null;
