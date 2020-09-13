@@ -1,9 +1,9 @@
-// Run bellow command to generate the schema validator and replace it into EnterpriseAdminGuestSchemaValidator.ts
+// Run bellow command to generate the schema validator and replace it into UserIdentityEntitySchemaValidator.ts
 // npx typescript-json-schema src/app/userIdentity/domain/UserIdentityEntity.ts * --required
 
 export enum UserIdentityDataRoleEnum {
-  NONE = "NONE",
-  ADMIN = "ADMIN",
+  NONE = 'NONE',
+  ADMIN = 'ADMIN',
 }
 
 export interface IUserIdentityEntity {

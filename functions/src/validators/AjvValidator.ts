@@ -1,5 +1,5 @@
-import { IJsvExternalInterface } from "../app/common/validator/IJsvExternalInterface";
-import Ajv from "ajv";
+import Ajv from 'ajv';
+import { IJsvExternalInterface } from '../app/common/validator/IJsvExternalInterface';
 
 export class AjvValidator implements IJsvExternalInterface {
   private ajv: Ajv.Ajv;

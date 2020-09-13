@@ -1,8 +1,9 @@
-import { CallableContext } from "firebase-functions/lib/providers/https";
-import { IUserIdentityEntity } from "../app/userIdentity/domain/UserIdentityEntity";
+// tslint:disable-next-line: no-submodule-imports
+import { CallableContext } from 'firebase-functions/lib/providers/https';
+import { IUserIdentityEntity } from '../app/userIdentity/domain/UserIdentityEntity';
 
-import { functions } from "../firebase";
-import { UserIdentityDriver } from "../userIdentity/UserIdentityDriver";
+import { functions } from '../firebase';
+import { UserIdentityDriver } from '../userIdentity/UserIdentityDriver';
 
 export class IdentityValidator {
   public static userIdentityDriver = new UserIdentityDriver();
@@ -15,8 +16,8 @@ export class IdentityValidator {
       const user = context.auth;
       if (context.auth === null || context.auth === undefined) {
         throw new functions.https.HttpsError(
-          "permission-denied",
-          "Not Authorized"
+          'permission-denied',
+          'Not Authorized'
         );
       }
 
@@ -27,12 +28,12 @@ export class IdentityValidator {
       return await callback(userIdentity!);
     } catch (err) {
       if (err instanceof Error) {
-        throw new functions.https.HttpsError("invalid-argument", err.message);
+        throw new functions.https.HttpsError('invalid-argument', err.message);
       }
       if (err instanceof functions.https.HttpsError) {
         throw err;
       }
-      throw new functions.https.HttpsError("internal", err);
+      throw new functions.https.HttpsError('internal', err);
     }
   }
 }
