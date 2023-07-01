@@ -4,4 +4,4 @@ export * from './genericObject';
 export * from './genericUser';
 export * from './helpers';
 export * from './phone';
-export * from './tzDatetime';
+export * from './customDate';
