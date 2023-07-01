@@ -1,17 +1,16 @@
 export interface IJsonViewPresenter {
-
   /**
    *
    * @param request
    * @param response
-   * @param {(data: object, context: object) => Promise<any>} callback
-   * @returns {Promise<any>}
+   * @param {(data: object, context: object) => Promise<unknown>} callback
+   * @returns {Promise<unknown>}
    */
   getOnRequestAsOnCall(
-    request: any,
-    response: any,
-    callback: (data: object, context: object) => Promise<any>,
-  ): Promise<any>;
+    request: unknown,
+    response: unknown,
+    callback: (data: object, context: object) => Promise<object>
+  ): Promise<object>;
 
   /**
    *
@@ -25,7 +24,6 @@ export interface IJsonViewPresenter {
     functionName: string,
     data: object,
     context: object,
-    callback: (data: object, user: string) => Promise<object>,
+    callback: (data: object, user: string) => Promise<object>
   ): Promise<object>;
-
 }

@@ -1,5 +1,4 @@
 export interface IJsonViewPresenterDriver {
-
   /**
    *
    * @param request
@@ -8,10 +7,10 @@ export interface IJsonViewPresenterDriver {
    * @returns {Promise<any>}
    */
   getOnRequestAsOnCall(
-    request: any,
-    response: any,
-    callback: (data: object, context: object) => Promise<any>,
-  ): Promise<any>;
+    request: unknown,
+    response: unknown,
+    callback: (data: object, context: object) => Promise<object>
+  ): Promise<object>;
 
   /**
    *
@@ -25,6 +24,6 @@ export interface IJsonViewPresenterDriver {
     functionName: string,
     data: object,
     context: object,
-    callback: (data: object, user: string) => Promise<object>,
+    callback: (data: object, user: string) => Promise<object>
   ): Promise<object>;
 }
