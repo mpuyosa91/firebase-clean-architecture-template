@@ -12,11 +12,19 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': [
       'error',
       {
-        varsIgnorePattern: '^_$',
-        argsIgnorePattern: '^_$',
-        caughtErrorsIgnorePattern: '^_$',
+        varsIgnorePattern: '^_*$',
+        argsIgnorePattern: '^_*$',
+        caughtErrorsIgnorePattern: '^_*$',
       },
     ],
     '@typescript-eslint/explicit-module-boundary-types': 'off',
   },
+  overrides: [
+    {
+      files: '*Controller.ts',
+      rules: {
+        '@typescript-eslint/no-explicit-any': 'off',
+      },
+    },
+  ],
 };

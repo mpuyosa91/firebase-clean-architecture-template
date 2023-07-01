@@ -4,6 +4,8 @@ export * from './IGenericObjectBasic';
 export * from './IGenericObjectLite';
 export * from './IIdentifiableUuid';
 export * from './IPublicGenericObject';
+export * from './IUpdatableBySystem';
+export * from './IWithId';
 export * from './IWritableGenericObject';
 export * from './IWritablePublicGenericObject';
 export * from './Nullable';

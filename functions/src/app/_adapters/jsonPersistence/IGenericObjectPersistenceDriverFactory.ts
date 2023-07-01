@@ -1,13 +1,13 @@
-import { IGenericObject } from '../_useCases';
-import { GenericObjectPersistenceDriver } from './GenericObjectPersistenceDriver';
+import { IGenericObjectBasic } from '../_useCases';
+import { IGenericObjectPersistenceDriver } from './IGenericObjectPersistenceDriver';
 
 export interface IGenericObjectPersistenceDriverFactory {
   /**
    *
    * @param {string} collectionName
-   * @returns {GenericObjectPersistenceDriver<T>}
+   * @returns {IGenericObjectPersistenceDriver<T>}
    */
-  generate<T extends IGenericObject>(
+  generate<T extends IGenericObjectBasic>(
     collectionName: string
-  ): GenericObjectPersistenceDriver<T>;
+  ): IGenericObjectPersistenceDriver<T>;
 }

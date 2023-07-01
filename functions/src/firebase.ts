@@ -1,10 +1,11 @@
 import * as admin from 'firebase-admin';
 
-let serviceAccount: any = null;
+let serviceAccount: Record<string, string> | null = null;
 
-export async function getServiceAccount() {
+export async function getServiceAccount(): Promise<Record<string, string>> {
   if (!serviceAccount) {
-    serviceAccount = await import('./serviceAccountKey.json');
+    const imported = await import('./serviceAccountKey.json');
+    serviceAccount = imported as unknown as Record<string, string>;
   }
   return serviceAccount;
 }
@@ -89,19 +90,16 @@ export async function getFirebaseStorage(): Promise<admin.storage.Storage> {
   return firebaseStorage;
 }
 
-export const firebaseInitialization = new Promise(async (resolve: any, reject: any) => {
-  try {
-    await getAdminApp();
-    const allPromises: Promise<any>[] = [];
-    allPromises.push(getFirebaseAuth());
-    allPromises.push(getDB());
-    allPromises.push(getRealtimeDB());
-    allPromises.push(getFirebaseStorage());
-    await Promise.all(allPromises);
-
-    resolve('');
-  } catch (e) {
-    reject(e);
+let productionState: boolean | null = null;
+export const isProduction = async (): Promise<boolean> => {
+  if (productionState === null) {
+    const serviceAccountSource = await getServiceAccount();
+    productionState = serviceAccountSource.project_id === 'myapp-prd';
   }
-  return;
-});
+
+  return productionState;
+};
+
+export const firebaseInitialization = getAdminApp().then((_) =>
+  Promise.all([getFirebaseAuth(), getDB(), getRealtimeDB(), getFirebaseStorage()])
+);

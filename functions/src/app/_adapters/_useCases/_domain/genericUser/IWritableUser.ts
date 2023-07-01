@@ -1,9 +1,11 @@
 import {
+  checkWritablePublicUserRequest,
   IWritablePublicUser,
   newFakeWritablePublicUser,
   newWritablePublicUser,
 } from './IWritablePublicUser';
 import {
+  checkWritablePublicGenericObjectRequest,
   DeepPartial,
   IWritableGenericObject,
   newFakeWritableGenericObject,
@@ -11,6 +13,15 @@ import {
 } from '../genericObject';
 
 type ThisInterface = IWritableUser;
+
+export const checkWritableUserRequest = (
+  request: DeepPartial<ThisInterface>,
+  contextPath = ''
+): ThisInterface => ({
+  ...checkWritablePublicGenericObjectRequest(request, contextPath),
+  ...checkWritablePublicUserRequest(request, contextPath),
+});
+
 export const newWritableUser = (object?: DeepPartial<ThisInterface>): ThisInterface => {
   const toReturnObject: ThisInterface = {
     ...newWritableGenericObject(object),
@@ -24,7 +35,7 @@ export interface IWritableUser extends IWritableGenericObject, IWritablePublicUs
 
 export const newFakeWritableUser = (params: { withAvatar?: boolean } = {}): ThisInterface => {
   return newWritableUser({
-    ...newFakeWritableGenericObject(params),
+    ...newFakeWritableGenericObject(),
     ...newFakeWritablePublicUser(params),
   });
 };

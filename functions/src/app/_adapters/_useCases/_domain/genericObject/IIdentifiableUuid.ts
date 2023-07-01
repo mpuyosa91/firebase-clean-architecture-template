@@ -1,26 +1,22 @@
-import { v4 as uuidV4 } from 'uuid';
+import short from 'short-uuid';
 import { DeepPartial } from './DeepPartial';
+import { IWithId, newFakeWithId, newWithId } from './IWithId';
+
+const shortUuidTranslator = short('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789');
 
 type ThisInterface = IIdentifiableUuid;
 export const newIdentifiableUuid = (object?: DeepPartial<ThisInterface>): ThisInterface => {
   const toReturnObject: ThisInterface = {
+    ...newWithId(object),
     dId: object?.dId ?? '',
-    id: object?.id ?? uuidV4(),
   };
 
-  toReturnObject.dId = toReturnObject.id.slice(0, 8);
+  toReturnObject.dId = shortUuidTranslator.fromUUID(toReturnObject.id).substr(0, 8);
 
   return toReturnObject;
 };
 
-export interface IIdentifiableUuid {
-  /**
-   * Full UUID
-   *
-   * @pattern (\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)|(NG_.*)|(TP_.*)|(\d{4})-(\d{2})-(\d{2})|([A-Z]{2,3})|(_.*)
-   */
-  id: string;
-
+export interface IIdentifiableUuid extends IWithId {
   /**
    * Shorted ID
    *
@@ -31,6 +27,6 @@ export interface IIdentifiableUuid {
 
 export const newFakeIdentifiableUuid = (): ThisInterface => {
   return newIdentifiableUuid({
-    id: uuidV4(),
+    ...newFakeWithId(),
   });
 };

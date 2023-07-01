@@ -3,31 +3,26 @@ import { DeepPartial } from './DeepPartial';
 import { CustomDate } from '../customDate';
 import { ObjectTypesEnum } from '../enums';
 import { newNullable } from './Nullable';
+import { IUpdatableBySystem, newUpdatableBySystem } from './IUpdatableBySystem';
 
 type ThisInterface = IGenericObjectBasic;
 export const newGenericObjectBasic = (object?: DeepPartial<ThisInterface>): ThisInterface => {
   const toReturnObject: ThisInterface = {
     ...newPublicGenericObject(object),
-    createdAtEpoch: 0,
+    ...newUpdatableBySystem(object),
+    createdAtTimestamp: 0,
     deletedAt: newNullable((value) => new CustomDate(value ?? '').toIsoString(), object?.deletedAt),
     objectType: ObjectTypesEnum.GENERIC_OBJECT_BASIC,
-    updatedAtBySystem: new CustomDate(object?.updatedAtBySystem ?? '').toIsoString(),
   };
 
-  toReturnObject.createdAtEpoch = new CustomDate(toReturnObject.createdAt).getTime();
+  toReturnObject.createdAtTimestamp = new CustomDate(toReturnObject.createdAt).getTime();
 
   toReturnObject.enabled = toReturnObject.deletedAt !== null;
 
   return toReturnObject;
 };
 
-export interface IGenericObjectBasic extends IPublicGenericObject {
-  /**
-   * @pattern (\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})[+-](\d{2}):(\d{2})
-   * @default 1970-01-01T00:00:00+00:00
-   */
-  updatedAtBySystem: string;
-
+export interface IGenericObjectBasic extends IPublicGenericObject, IUpdatableBySystem {
   /**
    * @default null
    * @pattern (\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})[+-](\d{2}):(\d{2})
@@ -37,5 +32,5 @@ export interface IGenericObjectBasic extends IPublicGenericObject {
   /**
    * @default 0
    */
-  createdAtEpoch: number;
+  createdAtTimestamp: number;
 }

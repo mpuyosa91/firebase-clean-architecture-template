@@ -1,14 +1,60 @@
 import {
+  checkWritablePublicGenericObjectRequest,
   DeepPartial,
   IWritablePublicGenericObject,
   newFakeWritablePublicGenericObject,
   newWritablePublicGenericObject,
 } from '../genericObject';
 import { faker } from '@faker-js/faker';
-import { IPhone, newPhone } from '../phone';
+import { checkPhoneRequest, IPhone, newPhone } from '../phone';
 import { CustomDate } from '../customDate';
+import { Validator } from '../validator';
 
 type ThisInterface = IWritablePublicUser;
+
+export const checkWritablePublicUserRequest = (
+  request: DeepPartial<ThisInterface>,
+  contextPath = ''
+): ThisInterface => {
+  request.avatarUrl = request.avatarUrl ?? null;
+
+  request.birthDate = Validator.validateRegex(
+    { value: request.birthDate, name: 'birthDate', contextPath },
+    /(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})[+-](\d{2}):(\d{2})/
+  );
+
+  request.firstName = Validator.validateLength(
+    { value: request.firstName, name: 'firstName', contextPath },
+    { min: 2, max: 100 }
+  );
+
+  request.lastName = Validator.validateLength(
+    { value: request.lastName, name: 'lastName', contextPath },
+    { min: 2, max: 100 }
+  );
+
+  request.mainLanguage = request.mainLanguage ?? 'en';
+
+  request.phone = Validator.validateExistence({
+    value: request.phone,
+    name: 'phone',
+    contextPath,
+  });
+
+  request.preferredCurrencyCodename = request.preferredCurrencyCodename ?? 'USD';
+
+  return {
+    ...checkWritablePublicGenericObjectRequest(request),
+    avatarUrl: request.avatarUrl,
+    birthDate: request.birthDate,
+    firstName: request.firstName,
+    lastName: request.lastName,
+    mainLanguage: request.mainLanguage,
+    phone: checkPhoneRequest(request.phone),
+    preferredCurrencyCodename: request.preferredCurrencyCodename,
+  };
+};
+
 export const newWritablePublicUser = (object?: DeepPartial<ThisInterface>): ThisInterface => {
   const toReturnObject: ThisInterface = {
     ...newWritablePublicGenericObject(object),

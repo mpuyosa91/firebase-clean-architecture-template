@@ -7,4 +7,6 @@ export * from './genericObject';
 export * from './genericUser';
 export * from './helpers';
 export * from './phone';
+export * from './searchEngine';
 export * from './userIdentification';
+export * from './validator';

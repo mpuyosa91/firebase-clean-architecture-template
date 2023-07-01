@@ -1,7 +1,25 @@
 import { faker } from '@faker-js/faker';
 import { DeepPartial } from './DeepPartial';
+import { Validator } from '../validator';
 
 type ThisInterface = IWritablePublicGenericObject;
+
+export const checkWritablePublicGenericObjectRequest = (
+  request: DeepPartial<ThisInterface>,
+  contextPath = ''
+): ThisInterface => {
+  request.description = request.description ?? '';
+
+  Validator.validateLength(
+    { value: request.description, name: 'description', contextPath },
+    { max: 500 }
+  );
+
+  return {
+    description: request.description,
+  };
+};
+
 export const newWritablePublicGenericObject = (
   object?: DeepPartial<ThisInterface>
 ): ThisInterface => {

@@ -12,8 +12,13 @@ export const newGenericObject = (object?: DeepPartial<ThisInterface>): ThisInter
     ...newGenericObjectBasic(object),
     ...newWritableGenericObject(object),
     objectType: ObjectTypesEnum.GENERIC_OBJECT,
-    updatedAt: new CustomDate(object?.updatedAtBySystem ?? '').toIsoString(),
+    updatedAt: new CustomDate(object?.updatedAt ?? '').toIsoString(),
+    updatedAtBySystem: new CustomDate(object?.updatedAtBySystem ?? '').toIsoString(),
+    updatedAtTimestamp: object?.updatedAtTimestamp ?? 0,
+    updatedAtBySystemTimestamp: object?.updatedAtBySystemTimestamp ?? 0,
   };
+
+  toReturnObject.updatedAtTimestamp = new CustomDate(toReturnObject.updatedAt).getTime();
 
   return toReturnObject;
 };
@@ -27,4 +32,9 @@ export interface IGenericObject
    * @default 1970-01-01T00:00:00+00:00
    */
   updatedAt: string;
+
+  /**
+   * @default 0
+   */
+  updatedAtTimestamp: number;
 }
