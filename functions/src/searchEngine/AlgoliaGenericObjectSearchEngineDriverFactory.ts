@@ -3,7 +3,7 @@ import {
   IGenericObjectSearchEngineDriver,
   IGenericObjectSearchEngineDriverFactory,
   ISearchEngineGenericObject,
-} from '../app';
+} from 'appbackend';
 import { AlgoliaGenericObjectSearchEngineDriver } from './AlgoliaGenericObjectSearchEngineDriver';
 
 export class AlgoliaGenericObjectSearchEngineDriverFactory

@@ -5,9 +5,9 @@ import {
   IGenericObjectBasic,
   IGetWhereOrderByType,
   ISearchEngineRequestOptions,
-} from '../app';
-import { getDB } from '../firebase';
+} from 'appbackend';
 import { firestore } from 'firebase-admin';
+import { FirebaseCloudFunctionsHelper } from '../jsonPresenter/FirebaseCloudFunctionsHelper';
 
 /**
  * Blue Layer: Frameworks & Drivers (Drivers)
@@ -15,6 +15,8 @@ import { firestore } from 'firebase-admin';
 export class FirestoreGenericObjectPersistenceDriver<T extends IGenericObjectBasic>
   implements IGenericObjectPersistenceDriver<T>
 {
+  public readonly firestoreDB = FirebaseCloudFunctionsHelper.getInstance().firestoreDB;
+
   private maxResultsPerPage = 1000;
   private minResultsPerPage = 5;
   private minCurrentPage = 0;
@@ -28,7 +30,7 @@ export class FirestoreGenericObjectPersistenceDriver<T extends IGenericObjectBas
   constructor(public readonly collectionName: string) {}
 
   public async write<U extends T>(object: U): Promise<U> {
-    const db = await getDB();
+    const db = this.firestoreDB;
 
     await db.collection(this.collectionName).doc(object.id).set(object);
 
@@ -36,7 +38,7 @@ export class FirestoreGenericObjectPersistenceDriver<T extends IGenericObjectBas
   }
 
   public async read(objectId: string): Promise<T | null> {
-    const db = await getDB();
+    const db = this.firestoreDB;
 
     const documentData = await db.collection(this.collectionName).doc(objectId).get();
     if (!documentData.exists) {
@@ -49,7 +51,7 @@ export class FirestoreGenericObjectPersistenceDriver<T extends IGenericObjectBas
   public async getByPagination(
     searchEngineRequestOptions: ISearchEngineRequestOptions
   ): Promise<{ results: T[]; currentPage: number; totalResults: number }> {
-    const db = await getDB();
+    const db = this.firestoreDB;
 
     await this.checkCreateAtIndex();
 
@@ -88,7 +90,7 @@ export class FirestoreGenericObjectPersistenceDriver<T extends IGenericObjectBas
     orderBy?: IGetWhereOrderByType,
     limit?: number
   ): Promise<T[]> {
-    const db = await getDB();
+    const db = this.firestoreDB;
 
     let query: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = db.collection(
       this.collectionName
@@ -119,7 +121,7 @@ export class FirestoreGenericObjectPersistenceDriver<T extends IGenericObjectBas
   }
 
   public async delete(objectId: string): Promise<object> {
-    const db = await getDB();
+    const db = this.firestoreDB;
 
     return db.collection(this.collectionName).doc(objectId).delete();
   }
@@ -133,7 +135,7 @@ export class FirestoreGenericObjectPersistenceDriver<T extends IGenericObjectBas
   };
 
   private async checkCreateAtIndex() {
-    const db = await getDB();
+    const db = this.firestoreDB;
     const now = new CustomDate();
 
     const cacheValidUntil = new CustomDate(

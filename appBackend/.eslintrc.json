@@ -1,0 +1,49 @@
+{
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "plugins": [
+    "@typescript-eslint",
+    "prettier",
+    "sort-class-members"
+  ],
+  "rules": {
+    "prettier/prettier": "error",
+    "no-console": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "varsIgnorePattern": "^_*$",
+        "argsIgnorePattern": "^_*$",
+        "caughtErrorsIgnorePattern": "^_*$"
+      }
+    ],
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "sort-class-members/sort-class-members": [
+      "error",
+      {
+        "order": [
+          "[static-properties]",
+          "[static-methods]",
+          "[properties]",
+          "[conventional-private-properties]",
+          "constructor",
+          "[methods]",
+          "[conventional-private-methods]"
+        ],
+        "accessorPairPositioning": "getThenSet",
+        "stopAfterFirstProblem": true
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": "*Controller.ts",
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    }
+  ]
+}

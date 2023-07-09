@@ -7,7 +7,7 @@ import {
   maxSearchEngineResultsPerPage,
   newPublicUser,
   newUser,
-} from '../app';
+} from 'appbackend';
 import algoliaSearchKeys from './algoliaSearchKeys.json';
 import { Settings } from '@algolia/client-search';
 import algoliaSearch, { SearchClient, SearchIndex } from 'algoliasearch';

@@ -4,11 +4,10 @@ import {
   IUserIdentificationData,
   IUserIdentificationExternalInterfaceDriver,
   newUserIdentification,
-} from '../app';
+} from 'appbackend';
 import { UserRecord } from 'firebase-functions/v1/auth';
-import * as functions from 'firebase-functions';
-import { getFirebaseAuth, isProduction } from '../firebase';
 import { FirebaseError } from 'firebase-admin/lib/app/core';
+import { FirebaseCloudFunctionsHelper } from '../jsonPresenter/FirebaseCloudFunctionsHelper';
 
 /**
  * Blue Layer: Frameworks & Drivers (Drivers)
@@ -16,27 +15,16 @@ import { FirebaseError } from 'firebase-admin/lib/app/core';
 export class FirebaseAuthUserIdentificationExternalInterfaceDriver
   implements IUserIdentificationExternalInterfaceDriver
 {
-  private isProductionState = false;
-
-  constructor() {
-    isProduction()
-      .then((value) => (this.isProductionState = value))
-      .catch((e) => {
-        functions.logger.error(e);
-      });
-  }
-
-  public isProduction(): boolean {
-    return this.isProductionState;
-  }
+  public readonly firebaseAuth = FirebaseCloudFunctionsHelper.getInstance().firebaseAuth;
 
   public async createUser(
     userData: IUserCredentials,
     userDataClaims: IUserIdentificationData
   ): Promise<IUserIdentification> {
-    const firebaseAuth = await getFirebaseAuth();
+    const firebaseAuth = this.firebaseAuth;
 
     const result = await firebaseAuth.createUser({
+      uid: userDataClaims.id,
       email: userData.email,
       password: userData.password,
     });
@@ -51,7 +39,7 @@ export class FirebaseAuthUserIdentificationExternalInterfaceDriver
     userDataClaims: IUserIdentificationData,
     userId: string
   ): Promise<IUserIdentification> {
-    const firebaseAuth = await getFirebaseAuth();
+    const firebaseAuth = this.firebaseAuth;
 
     const result = await firebaseAuth.updateUser(userId, {
       email: userData.email,
@@ -68,7 +56,7 @@ export class FirebaseAuthUserIdentificationExternalInterfaceDriver
     email: string,
     url: string
   ): Promise<string> {
-    const firebaseAuth = await getFirebaseAuth();
+    const firebaseAuth = this.firebaseAuth;
 
     const actionCodeSettings = {
       handleCodeInApp: false,
@@ -88,7 +76,7 @@ export class FirebaseAuthUserIdentificationExternalInterfaceDriver
   }
 
   public async getUser(userId: string): Promise<IUserIdentification | null> {
-    const firebaseAuth = await getFirebaseAuth();
+    const firebaseAuth = this.firebaseAuth;
 
     try {
       const firebaseUser = await firebaseAuth.getUser(userId);
@@ -106,7 +94,7 @@ export class FirebaseAuthUserIdentificationExternalInterfaceDriver
   }
 
   public async getUserByEmail(email: string): Promise<IUserIdentification | null> {
-    const firebaseAuth = await getFirebaseAuth();
+    const firebaseAuth = this.firebaseAuth;
 
     try {
       const firebaseUser = await firebaseAuth.getUserByEmail(email);
@@ -119,21 +107,11 @@ export class FirebaseAuthUserIdentificationExternalInterfaceDriver
     }
   }
 
-  public async checkUser(userId: string): Promise<boolean> {
-    return (await this.getUser(userId)) !== null;
-  }
-
-  public async getUserData(userId: string): Promise<IUserIdentificationData | null> {
-    const user = await this.getUser(userId);
-
-    return user === null ? null : user.data;
-  }
-
   public async setUserData(
     userId: string,
     data: IUserIdentificationData
   ): Promise<IUserIdentificationData> {
-    const firebaseAuth = await getFirebaseAuth();
+    const firebaseAuth = this.firebaseAuth;
 
     await firebaseAuth.setCustomUserClaims(userId, data);
 
@@ -145,7 +123,7 @@ export class FirebaseAuthUserIdentificationExternalInterfaceDriver
     email: string,
     url: string
   ): Promise<string> {
-    const firebaseAuth = await getFirebaseAuth();
+    const firebaseAuth = this.firebaseAuth;
 
     const actionCodeSettings = {
       handleCodeInApp: false,
@@ -165,7 +143,7 @@ export class FirebaseAuthUserIdentificationExternalInterfaceDriver
   }
 
   public async deleteUser(userId: string): Promise<void> {
-    const firebaseAuth = await getFirebaseAuth();
+    const firebaseAuth = this.firebaseAuth;
 
     await firebaseAuth.deleteUser(userId);
   }
@@ -180,7 +158,7 @@ export class FirebaseAuthUserIdentificationExternalInterfaceDriver
   }
 
   private async listAllUsers(nextPageToken?: string): Promise<IUserIdentification[]> {
-    const firebaseAuth = await getFirebaseAuth();
+    const firebaseAuth = this.firebaseAuth;
 
     // List batch of users, 1000 at a time.
     try {

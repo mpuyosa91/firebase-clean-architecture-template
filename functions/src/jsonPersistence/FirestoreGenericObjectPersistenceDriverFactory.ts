@@ -2,7 +2,7 @@ import {
   IGenericObjectBasic,
   IGenericObjectPersistenceDriver,
   IGenericObjectPersistenceDriverFactory,
-} from '../app';
+} from 'appbackend';
 import { FirestoreGenericObjectPersistenceDriver } from './FirestoreGenericObjectPersistenceDriver';
 
 export class FirestoreGenericObjectPersistenceDriverFactory

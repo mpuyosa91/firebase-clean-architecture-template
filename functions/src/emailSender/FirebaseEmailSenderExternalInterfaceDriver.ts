@@ -1,6 +1,6 @@
-import { CollectionNames, IEmailSenderExternalInterfaceDriver } from '../app';
-import { getDB } from '../firebase';
-import * as functions from 'firebase-functions';
+import { CollectionNames, EmailObject, IEmailSenderExternalInterfaceDriver } from 'appbackend';
+
+import { FirebaseCloudFunctionsHelper } from '../jsonPresenter/FirebaseCloudFunctionsHelper';
 
 /**
  * Blue Layer: Frameworks & Drivers (Drivers)
@@ -8,41 +8,20 @@ import * as functions from 'firebase-functions';
 export class FirebaseEmailSenderExternalInterfaceDriver
   implements IEmailSenderExternalInterfaceDriver
 {
-  private FROM = '"MyApp Mail Service" <no-reply@myappmailservice.com>';
+  public readonly firestoreDB = FirebaseCloudFunctionsHelper.getInstance().firestoreDB;
 
-  private static async saveEmail(info: Record<string, string>) {
-    const firestoreDB = await getDB();
+  public async sendEmail(email: EmailObject): Promise<object | null> {
+    const db = this.firestoreDB;
 
-    return firestoreDB.collection(CollectionNames.MAILS).add({
-      to: info.to,
-      message: {
-        subject: info.subject,
-        text: info.text,
-        html: info.html,
-      },
-    });
-  }
+    db.collection(CollectionNames.MAILS)
+      .add(email)
+      .catch((err) =>
+        FirebaseCloudFunctionsHelper.getInstance().logMessage(
+          'error',
+          `Error on EmailSenderExternalInterface.sendEmail. ${JSON.stringify(err)}`
+        )
+      );
 
-  public async sendEmail(
-    email: string,
-    subject: string,
-    content: string,
-    htmlContent: string
-  ): Promise<object | null> {
-    const info: Record<string, string> = {
-      from: this.FROM,
-      to: email,
-      subject,
-      text: content,
-      html: htmlContent,
-    };
-
-    FirebaseEmailSenderExternalInterfaceDriver.saveEmail(info).catch((err) =>
-      functions.logger.error(
-        'Error on EmailSenderExternalInterface.sendEmail. \n' + JSON.stringify(err)
-      )
-    );
-
-    return info;
+    return email;
   }
 }

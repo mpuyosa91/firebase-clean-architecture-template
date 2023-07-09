@@ -6,7 +6,7 @@
 /out/
 
 # Dependency directories
-/node_modules/
+**/node_modules/
 
 # TypeScript specific
 *.tsbuildinfo
@@ -16,3 +16,6 @@
 
 # Logs
 *.log
+
+# Tests
+**/coverage/

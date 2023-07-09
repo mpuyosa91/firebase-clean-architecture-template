@@ -1,0 +1,15 @@
+{
+  "preset": "ts-jest",
+  "testEnvironment": "node",
+  "moduleFileExtensions": [
+    "ts",
+    "tsx",
+    "js"
+  ],
+  "testMatch": [
+    "**/*.test.(ts|tsx|js)"
+  ],
+  "setupFiles": [
+    "./__tests__/testDrivers/CreateMockApplication.ts"
+  ]
+}
