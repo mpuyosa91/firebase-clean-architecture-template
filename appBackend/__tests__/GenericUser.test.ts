@@ -19,10 +19,9 @@ import {
 } from './testDrivers/CreateMockApplication';
 import { faker } from '@faker-js/faker';
 import { cloneDeep } from 'lodash';
-import { MockGenericObjectPersistenceDriverFactory } from './testDrivers/MockGenericObjectPersistenceDriverFactory';
 
 describe('GenericUserController', () => {
-  test('GUC001. Create User', async () => {
+  test('GU-GUC001. Create User', async () => {
     const request = newFakeCreateUserRequest();
 
     const { user, userIdentification } = await getGenericUserController().createUser(request, '');
@@ -36,13 +35,13 @@ describe('GenericUserController', () => {
     expect(userIdentification.data?.firstName).toBe(request.user.firstName);
   });
 
-  test('GUC001_1. Can not if logged In', async () => {
+  test('GU-GUC001_1. Can not if logged In', async () => {
     const request = newFakeCreateUserRequest();
 
     await testCreateUser(request, faker.string.uuid(), CustomErrorCodes.LOGGED_IN);
   });
 
-  test('GUC001_2. Can not if email exists', async () => {
+  test('GU-GUC001_2. Can not if email exists', async () => {
     const request = newFakeCreateUserRequest();
 
     await testCreateUser(request, '');
@@ -50,21 +49,21 @@ describe('GenericUserController', () => {
     await testCreateUser(request, '', CustomErrorCodes.USER_EMAIL_EXIST);
   });
 
-  test('GUC001_3. Can not if any param is missed', async () => {
+  test('GU-GUC001_3. Can not if any param is missed', async () => {
     const request: DeepPartial<ICreateUserRequest> = newFakeCreateUserRequest();
     delete request?.user?.description;
 
     await testCreateUser(request as ICreateUserRequest, '', CustomErrorCodes.MISSED_ARGUMENT);
   });
 
-  test('GUC001_4. Can not if any param does not complaint format', async () => {
+  test('GU-GUC001_4. Can not if any param does not complaint format', async () => {
     const request = newFakeCreateUserRequest();
     request.user.description = faker.lorem.paragraphs(10);
 
     await testCreateUser(request, '', CustomErrorCodes.BAD_FORMAT_ARGUMENT);
   });
 
-  test('GUC001_5. User may have one given role', async () => {
+  test('GU-GUC001_5. User may have one given role', async () => {
     const user = await fastCreateUser();
 
     const userDocument = await genericObjectPersistenceDriverFactory
@@ -75,7 +74,7 @@ describe('GenericUserController', () => {
     expect(userDocument?.givenRoles).toStrictEqual([UserRoleEnum.USER]);
   });
 
-  test('GUC002. Retrieve User', async () => {
+  test('GU-GUC002. Retrieve User', async () => {
     const user = await fastCreateUser();
 
     const response = await testRetrieveUser(user.id);
@@ -83,11 +82,11 @@ describe('GenericUserController', () => {
     expect(response?.user).toBeTruthy();
   });
 
-  test('GUC002_1. Can not retrieve being logged out', async () => {
+  test('GU-GUC002_1. Can not retrieve being logged out', async () => {
     await testRetrieveUser('', CustomErrorCodes.NOT_LOGGED_IN);
   });
 
-  test('GUC002_2. User not found notification', async () => {
+  test('GU-GUC002_2. User not found notification', async () => {
     const user = await fastCreateUser();
 
     await genericObjectPersistenceDriverFactory.getDB(CollectionNames.USERS).delete(user.id);
@@ -95,7 +94,7 @@ describe('GenericUserController', () => {
     await testRetrieveUser(user.id, CustomErrorCodes.USER_NOT_FOUND);
   });
 
-  test('GUC002_3. User Identification not found notification', async () => {
+  test('GU-GUC002_3. User Identification not found notification', async () => {
     const user = await fastCreateUser();
 
     await userIdentificationExternalInterfaceDriver.deleteUser(user.id);
@@ -103,7 +102,7 @@ describe('GenericUserController', () => {
     await testRetrieveUser(user.id, CustomErrorCodes.USER_NOT_FOUND);
   });
 
-  test('GUC002_4. User can be found on SearchEngine', async () => {
+  test('GU-GUC002_4. User can be found on SearchEngine', async () => {
     const user = await fastCreateUser();
 
     const searchEngineUser = cloneDeep(
@@ -116,7 +115,7 @@ describe('GenericUserController', () => {
     expect(user.id).toBe(searchEngineUser?.objectID);
   });
 
-  test('GUC003. Update User', async () => {
+  test('GU-GUC003. Update User', async () => {
     const user = await fastCreateUser();
 
     const request: DeepPartial<IUpdateUserRequest> = {
@@ -128,7 +127,7 @@ describe('GenericUserController', () => {
     expect(user.firstName).not.toBe(updatedUser.firstName);
   });
 
-  test('GUC003_1. Update can be found on SearchEngine', async () => {
+  test('GU-GUC003_1. Update can be found on SearchEngine', async () => {
     const user = await fastCreateUser();
 
     const searchEngineUserBefore = cloneDeep(
@@ -158,7 +157,7 @@ describe('GenericUserController', () => {
     expect(response.user.firstName).toBe(searchEngineUserAfter?.firstName);
   });
 
-  test('GUC003_2. Can not update if an existing email', async () => {
+  test('GU-GUC003_2. Can not update if an existing email', async () => {
     const user1 = await fastCreateUser();
     const user2 = await fastCreateUser();
 
@@ -168,7 +167,7 @@ describe('GenericUserController', () => {
     await testUpdateUser(request, user2.id, CustomErrorCodes.USER_EMAIL_EXIST);
   });
 
-  test('GUC003_3. Any email direct modification will be rejected', async () => {
+  test('GU-GUC003_3. Any email direct modification will be rejected', async () => {
     const user1 = await fastCreateUser();
     const user2 = await fastCreateUser();
 
@@ -183,13 +182,13 @@ describe('GenericUserController', () => {
     expect(user1Document?.email).not.toBe(user2.email);
   });
 
-  test('GUC004. Delete User', async () => {
+  test('GU-GUC004. Delete User', async () => {
     const user = await fastCreateUser();
 
     await testDeleteUser(user.id);
   });
 
-  test('GUC004_1. Can not delete user twice', async () => {
+  test('GU-GUC004_1. Can not delete user twice', async () => {
     const user = await fastCreateUser();
 
     await testDeleteUser(user.id);
@@ -197,7 +196,7 @@ describe('GenericUserController', () => {
     await testDeleteUser(user.id, CustomErrorCodes.USER_ALREADY_DELETED);
   });
 
-  test('GUC004_2. Already deleted if User Identification is deleted', async () => {
+  test('GU-GUC004_2. Already deleted if User Identification is deleted', async () => {
     const user = await fastCreateUser();
 
     await userIdentificationExternalInterfaceDriver.deleteUser(user.id);
@@ -205,7 +204,7 @@ describe('GenericUserController', () => {
     await testDeleteUser(user.id, CustomErrorCodes.USER_ALREADY_DELETED);
   });
 
-  test('GUC004_3. Already deleted if User Object is deleted', async () => {
+  test('GU-GUC004_3. Already deleted if User Object is deleted', async () => {
     const user = await fastCreateUser();
 
     await genericObjectPersistenceDriverFactory.getDB(CollectionNames.USERS).delete(user.id);
