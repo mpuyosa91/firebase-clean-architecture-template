@@ -46,6 +46,12 @@ export class MockUserIdentificationExternalInterfaceDriver
     userDataClaims: IUserIdentificationData,
     userId: string
   ): Promise<IUserIdentification> {
+    if (
+      Object.values(this.internalDB).find((uI) => uI.email === userData.email && uI.id !== userId)
+    ) {
+      throw new Error('The email address is already in use by another account');
+    }
+
     this.internalDB[userId] = newUserIdentification({
       id: userId,
       email: userData.email,

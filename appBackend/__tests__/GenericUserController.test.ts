@@ -19,6 +19,7 @@ import {
 } from './testDrivers/CreateMockApplication';
 import { faker } from '@faker-js/faker';
 import { cloneDeep } from 'lodash';
+import { MockGenericObjectPersistenceDriverFactory } from './testDrivers/MockGenericObjectPersistenceDriverFactory';
 
 describe('GenericUserController', () => {
   test('GUC001. Create User', async () => {
@@ -165,6 +166,21 @@ describe('GenericUserController', () => {
       email: user1.email,
     };
     await testUpdateUser(request, user2.id, CustomErrorCodes.USER_EMAIL_EXIST);
+  });
+
+  test('GUC003_3. Any email direct modification will be rejected', async () => {
+    const user1 = await fastCreateUser();
+    const user2 = await fastCreateUser();
+
+    await genericObjectPersistenceDriverFactory
+      .getDB<IUser>(CollectionNames.USERS)
+      .write({ ...user1, email: user2.email });
+
+    const user1Document = await genericObjectPersistenceDriverFactory
+      .getDB<IUser>(CollectionNames.USERS)
+      .read(user1.id);
+
+    expect(user1Document?.email).not.toBe(user2.email);
   });
 
   test('GUC004. Delete User', async () => {

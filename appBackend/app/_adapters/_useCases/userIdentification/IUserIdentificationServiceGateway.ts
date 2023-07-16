@@ -42,13 +42,6 @@ export interface IUserIdentificationServiceGateway {
   /**
    *
    * @param {string} userId
-   * @returns {boolean} userExists
-   */
-  checkUser(userId: string): Promise<boolean>;
-
-  /**
-   *
-   * @param {string} userId
    * @returns {(IUserIdentificationData | null)} retrievedUserData or null
    */
   getUserData(userId: string): Promise<IUserIdentificationData | null>;

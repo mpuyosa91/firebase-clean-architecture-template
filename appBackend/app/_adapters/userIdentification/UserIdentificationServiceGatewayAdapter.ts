@@ -124,10 +124,6 @@ export class UserIdentificationServiceGatewayAdapter implements IUserIdentificat
     return newNullable(newUserIdentification, userIdentity);
   }
 
-  public async checkUser(userId: string): Promise<boolean> {
-    return (await this.getUser(userId)) !== null;
-  }
-
   public async getUserData(userId: string): Promise<IUserIdentificationData | null> {
     const user = await this.getUser(userId);
 

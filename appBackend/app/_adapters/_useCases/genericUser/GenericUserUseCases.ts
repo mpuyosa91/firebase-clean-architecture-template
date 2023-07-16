@@ -121,17 +121,49 @@ export class GenericUserUseCases<T extends IUser> implements IGenericUserUseCase
     const afterWriteUserResult: Record<string, object> =
       await this.genericObjectPersistenceGateway.afterWrite(userBefore, userAfter);
 
-    const userIdentification = await this.userIdentificationServiceGateway.getUser(userAfter.id);
+    const userId = userAfter.id;
 
-    if (userIdentification?.data) {
-      const toUpdateAdminData: IUserIdentificationData = newUserIdentificationData({
-        ...userIdentification.data,
-        ...userAfter,
-      });
+    const userIdentification = await this.userIdentificationServiceGateway.getUser(userId);
 
-      if (!this.jsonHelperServiceGateway.compareEqual(userIdentification.data, toUpdateAdminData)) {
-        afterWriteUserResult['writeUserIdentification'] =
-          await this.userIdentificationServiceGateway.setUserData(userAfter.id, toUpdateAdminData);
+    const toUpdateAdminData: IUserIdentificationData = newUserIdentificationData({
+      ...(await this.jsonHelperServiceGateway.deepClone(userIdentification?.data)),
+      ...userAfter,
+    });
+
+    const haveToUpdateUserIdentificationData =
+      !this.jsonHelperServiceGateway.compareEqual(
+        userIdentification?.data ?? {},
+        toUpdateAdminData
+      ) ||
+      (userBefore && userBefore.email !== userAfter.email);
+    if (haveToUpdateUserIdentificationData) {
+      if (!userBefore || userBefore.email === userAfter.email) {
+        afterWriteUserResult['writeUserIdentificationData'] =
+          await this.userIdentificationServiceGateway.setUserData(userId, toUpdateAdminData);
+      } else {
+        try {
+          afterWriteUserResult['writeUserIdentification'] =
+            await this.userIdentificationServiceGateway.updateUser(
+              {
+                email: userAfter.email,
+                password: Math.random().toString(36).slice(-8),
+              },
+              toUpdateAdminData,
+              userId
+            );
+        } catch (e) {
+          const error = e as CustomError;
+          const rollbackEmailErrors = [
+            CustomErrorCodes.USER_EMAIL_EXIST,
+            CustomErrorCodes.BAD_FORMAT_EMAIL,
+          ];
+          if (rollbackEmailErrors.includes(error.code)) {
+            await this.genericObjectPersistenceGateway.write({
+              ...userAfter,
+              email: userBefore.email,
+            });
+          }
+        }
       }
     }
 
