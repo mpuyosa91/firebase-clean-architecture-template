@@ -4,20 +4,34 @@ import { Validator } from '../validator';
 
 type ThisInterface = IWithId;
 
-export const checkWithIdRequest = (
+export const checkNonStrictWithId = (
+  request: DeepPartial<ThisInterface>,
+  contextPath = ''
+): DeepPartial<ThisInterface> => {
+  if (request.id) {
+    request.id = Validator.validateRegex(
+      { value: request.id, name: 'id', contextPath },
+      /(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/
+    );
+  }
+
+  return request;
+};
+
+export const checkWithId = (
   request: DeepPartial<ThisInterface>,
   contextPath = ''
 ): ThisInterface => {
   request.id = request.id ?? uuidV4();
+
+  request.id = Validator.validateExistence({ value: request.id, name: 'id', contextPath });
 
   request.id = Validator.validateRegex(
     { value: request.id, name: 'id', contextPath },
     /(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/
   );
 
-  return {
-    id: request.id,
-  };
+  return newWithId(checkNonStrictWithId(request, contextPath));
 };
 
 export const newWithId = (object?: DeepPartial<ThisInterface>): ThisInterface => {

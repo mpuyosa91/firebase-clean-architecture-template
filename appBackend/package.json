@@ -31,7 +31,7 @@
   "private": true,
   "scripts": {
     "test": "jest --config jest.config.json",
-    "lint": "eslint app",
+    "lint": "eslint app __tests__",
     "fixLint": "npm run lint -- --fix"
   },
   "type": "module",

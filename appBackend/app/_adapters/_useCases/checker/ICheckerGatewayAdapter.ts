@@ -1,17 +1,17 @@
-import { IAdmin, IUser, IUserIdentification } from '../_domain';
+import { IAdmin, IUser, IUserIdentification, UserRoleEnum } from '../_domain';
 
 export interface ICheckerGatewayAdapter {
   /**
    *
    * @param {string} userId
    */
-  checkLoggedOut(userId: string): void;
+  checkLoggedOutOrAdmin(userId: string): Promise<UserRoleEnum.USER | UserRoleEnum.ADMIN>;
 
   /**
    *
    * @param {string} userId
    */
-  checkLoggedIn(userId: string): void;
+  checkLoggedInOrAdmin(userId: string): Promise<UserRoleEnum.USER | UserRoleEnum.ADMIN>;
 
   /**
    *
@@ -26,6 +26,13 @@ export interface ICheckerGatewayAdapter {
    * @returns {Promise<IUser>}
    */
   checkSuperAdmin(userId: string): Promise<IAdmin>;
+
+  /**
+   *
+   * @param {string} userId
+   * @returns {Promise<IAdmin>}
+   */
+  checkAdmin(userId: string): Promise<IAdmin>;
 
   /**
    *

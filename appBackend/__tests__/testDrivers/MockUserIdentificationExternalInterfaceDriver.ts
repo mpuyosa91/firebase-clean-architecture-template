@@ -1,13 +1,13 @@
 // eslint-disable-file @typescript-eslint/no-unused-vars
 
 import {
+  Application,
   IUserCredentials,
   IUserIdentification,
   IUserIdentificationData,
   IUserIdentificationExternalInterfaceDriver,
   newUserIdentification,
-} from '../../app/_adapters';
-import { Application } from '../../app/Application';
+} from '../../app';
 import { cloneDeep } from 'lodash';
 
 export class MockUserIdentificationExternalInterfaceDriver

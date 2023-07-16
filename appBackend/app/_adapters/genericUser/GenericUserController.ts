@@ -1,4 +1,5 @@
 import {
+  checkWithId,
   CustomError,
   CustomErrorCodes,
   IAdminUseCases,
@@ -9,10 +10,12 @@ import {
   IUserIdentification,
   IUserResponse,
   IUserWithIdentificationResponse,
+  IWithId,
   newAdmin,
   newNullable,
   newUser,
   ObjectTypesEnum,
+  UserRoleEnum,
 } from '../_useCases';
 import { checkCreateUserRequest } from './_domain/ICreateUserRequest';
 import { checkUpdateUserRequest } from './_domain/IUpdateUserRequest';
@@ -25,7 +28,7 @@ export class GenericUserController {
   ) {}
 
   public async createUser(request: any, userId: string) {
-    this.checkerServiceGateway.checkLoggedOut(userId);
+    await this.checkerServiceGateway.checkLoggedOutOrAdmin(userId);
 
     const validatedRequest = checkCreateUserRequest(request);
 
@@ -37,13 +40,22 @@ export class GenericUserController {
     return this.genericUserUseCases.createUser(userCredentials, validatedRequest.user);
   }
 
-  public async retrieveUser(_: any, userId: string): Promise<IUserWithIdentificationResponse> {
-    this.checkerServiceGateway.checkLoggedIn(userId);
+  public async retrieveUser(
+    request: object,
+    userId: string
+  ): Promise<IUserWithIdentificationResponse> {
+    const mode = await this.checkerServiceGateway.checkLoggedInOrAdmin(userId);
 
-    const retrievedUser = await this.checkerServiceGateway.checkUserById(userId);
+    let validatedAdminRequest: IWithId | undefined;
+    if (mode === UserRoleEnum.ADMIN) {
+      validatedAdminRequest = checkWithId(request);
+    }
+    const toRetrieveUserId = validatedAdminRequest?.id ?? userId;
+
+    const retrievedUser = await this.checkerServiceGateway.checkUserById(toRetrieveUserId);
 
     const retrievedUserIdentification =
-      await this.checkerServiceGateway.checkUserIdentificationById(userId);
+      await this.checkerServiceGateway.checkUserIdentificationById(toRetrieveUserId);
 
     return {
       user: retrievedUser,
@@ -52,7 +64,13 @@ export class GenericUserController {
   }
 
   public async updateUser(request: any, userId: string): Promise<IUserResponse> {
-    this.checkerServiceGateway.checkLoggedIn(userId);
+    const mode = await this.checkerServiceGateway.checkLoggedInOrAdmin(userId);
+
+    let validatedAdminRequest: IWithId | undefined;
+    if (mode === UserRoleEnum.ADMIN) {
+      validatedAdminRequest = checkWithId(request);
+    }
+    const toRetrieveUserId = validatedAdminRequest?.id ?? userId;
 
     const validatedRequest = checkUpdateUserRequest(request);
 
@@ -78,7 +96,7 @@ export class GenericUserController {
       }
     }
 
-    const retrievedUser = await this.checkerServiceGateway.checkUserById(userId);
+    const retrievedUser = await this.checkerServiceGateway.checkUserById(toRetrieveUserId);
 
     const updatedUser = await this.genericUserUseCases.updateUser(
       validatedRequest.user ?? {},
@@ -90,12 +108,18 @@ export class GenericUserController {
     };
   }
 
-  public async deleteUser(_: any, userId: string): Promise<object> {
-    this.checkerServiceGateway.checkLoggedIn(userId);
+  public async deleteUser(request: any, userId: string): Promise<object> {
+    const mode = await this.checkerServiceGateway.checkLoggedInOrAdmin(userId);
+
+    let validatedAdminRequest: IWithId | undefined;
+    if (mode === UserRoleEnum.ADMIN) {
+      validatedAdminRequest = checkWithId(request);
+    }
+    const toRetrieveUserId = validatedAdminRequest?.id ?? userId;
 
     let retrievedUser = null;
     try {
-      retrievedUser = await this.checkerServiceGateway.checkUserById(userId);
+      retrievedUser = await this.checkerServiceGateway.checkUserById(toRetrieveUserId);
     } catch (e) {
       const error = e as CustomError;
       if (error.code !== CustomErrorCodes.USER_NOT_FOUND) {
@@ -105,7 +129,7 @@ export class GenericUserController {
     let retrievedUserIdentification = null;
     try {
       retrievedUserIdentification = await this.checkerServiceGateway.checkUserIdentificationById(
-        userId
+        toRetrieveUserId
       );
     } catch (e) {
       const error = e as CustomError;
@@ -122,7 +146,7 @@ export class GenericUserController {
       });
     }
 
-    return this.genericUserUseCases.delete(userId);
+    return this.genericUserUseCases.delete(toRetrieveUserId);
   }
 
   public async onWriteObject(request: any, _: string): Promise<Record<string, object>> {

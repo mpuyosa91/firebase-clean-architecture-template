@@ -1,4 +1,7 @@
+// eslint-disable-file @typescript-eslint/no-explicit-any
+
 import {
+  Application,
   CollectionNames,
   CustomDate,
   GetWhereConditionsType,
@@ -7,9 +10,8 @@ import {
   IGetWhereOrderByType,
   ISearchEngineRequestOptions,
   ObjectTypesEnum,
-} from '../../app/_adapters';
+} from '../../app';
 import { cloneDeep } from 'lodash';
-import { Application } from '../../app/Application';
 
 export class MockGenericObjectPersistenceDriver<T extends IGenericObjectBasic>
   implements IGenericObjectPersistenceDriver<T>
@@ -28,7 +30,6 @@ export class MockGenericObjectPersistenceDriver<T extends IGenericObjectBasic>
   private documentMapper = (documentData: T): T => {
     return documentData;
   };
-
   constructor(public readonly collectionName: CollectionNames) {}
 
   public async write<U extends T>(object: U): Promise<U> {
@@ -102,8 +103,8 @@ export class MockGenericObjectPersistenceDriver<T extends IGenericObjectBasic>
     for (const condition of conditions) {
       query = query.filter((item) =>
         this.compareValues(
-          item[condition.property as keyof T],
-          condition.valueToCompare,
+          item[condition.property as keyof T] as unknown as object,
+          condition.valueToCompare as unknown as object,
           condition.comparison
         )
       );
@@ -120,7 +121,7 @@ export class MockGenericObjectPersistenceDriver<T extends IGenericObjectBasic>
     return query;
   }
 
-  private compareValues(value: any, valueToCompare: any, comparison: string): boolean {
+  private compareValues(value: object, valueToCompare: object, comparison: string): boolean {
     // Implement your comparison logic here based on the given comparison operator
     // Example implementation:
     switch (comparison) {

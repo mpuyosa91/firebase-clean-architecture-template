@@ -3,7 +3,7 @@ import {
   IGenericObjectBasic,
   IGenericObjectPersistenceDriver,
   IGenericObjectPersistenceDriverFactory,
-} from '../../app/_adapters';
+} from '../../app';
 import { MockGenericObjectPersistenceDriver } from './MockGenericObjectPersistenceDriver';
 
 export class MockGenericObjectPersistenceDriverFactory
@@ -24,7 +24,7 @@ export class MockGenericObjectPersistenceDriverFactory
     return genericObjectPersistenceDriver;
   }
 
-  getDB(collectionName: CollectionNames) {
-    return this.internalDB[collectionName as string];
+  getDB<T extends IGenericObjectBasic>(collectionName: CollectionNames) {
+    return this.internalDB[collectionName as string] as MockGenericObjectPersistenceDriver<T>;
   }
 }

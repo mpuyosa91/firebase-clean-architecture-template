@@ -1,10 +1,19 @@
-import { Application } from '../../app/Application';
+import {
+  Application,
+  CollectionNames,
+  CustomError,
+  CustomErrorCodes,
+  IAdmin,
+  IUser,
+  newFakeCreateAdminRequest,
+  newFakeCreateUserRequest,
+  ObjectTypesEnum,
+} from '../../app';
 import { TestJsonWebServerFramework } from './TestJsonWebServerFramework';
 import { MockUserIdentificationExternalInterfaceDriver } from './MockUserIdentificationExternalInterfaceDriver';
 import { MockEmailSenderExternalInterfaceDriver } from './MockEmailSenderExternalInterfaceDriver';
 import { MockGenericObjectPersistenceDriverFactory } from './MockGenericObjectPersistenceDriverFactory';
 import { MockGenericObjectSearchEngineDriverFactory } from './MockGenericObjectSearchEngineDriverFactory';
-import { CollectionNames, ObjectTypesEnum } from '../../app/_adapters';
 
 export const userIdentificationExternalInterfaceDriver =
   new MockUserIdentificationExternalInterfaceDriver();
@@ -39,3 +48,40 @@ export const getSuperAdminId = async (): Promise<string> => {
 
 export const getGenericUserController = () => Application.getInstance().getGenericUserController();
 export const getAdminController = () => Application.getInstance().getAdminController();
+
+export async function testFunction<T, R>(
+  request: T,
+  userId: string,
+  toTestFunction: (request: T, userId: string) => Promise<R>,
+  customErrorCodes?: CustomErrorCodes
+): Promise<R | undefined> {
+  try {
+    const response = await toTestFunction(request, userId);
+
+    !customErrorCodes ? expect(response).toBeTruthy() : expect(response).toBeFalsy();
+
+    return response;
+  } catch (e) {
+    const error = e as CustomError;
+    try {
+      !customErrorCodes ? expect(error).toBeFalsy() : expect(error.code).toBe(customErrorCodes);
+    } catch (assertionError) {
+      console.error(error);
+      throw assertionError;
+    }
+  }
+}
+
+export const fastCreateAdmin = async (): Promise<IAdmin> => {
+  const { adminDocument } = await getAdminController().createAdmin(
+    newFakeCreateAdminRequest(),
+    await getSuperAdminId()
+  );
+
+  return adminDocument;
+};
+export const fastCreateUser = async (): Promise<IUser> => {
+  const { user } = await getGenericUserController().createUser(newFakeCreateUserRequest(), '');
+
+  return user;
+};

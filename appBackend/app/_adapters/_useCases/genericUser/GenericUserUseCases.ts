@@ -38,24 +38,14 @@ export class GenericUserUseCases<T extends IUser> implements IGenericUserUseCase
   public async createUser(
     userCredentials: IUserCredentials,
     writableUser: IWritableUser,
-    role = UserRoleEnum.NONE
+    role = UserRoleEnum.USER
   ): Promise<IUserWithIdentificationResponse> {
     const toCreateUserId = newIdentifiableUuid().id;
 
     try {
-      const userIdentification = await this.userIdentificationServiceGateway.createUser(
-        userCredentials,
-        newUserIdentificationData({
-          ...writableUser,
-          role,
-          id: toCreateUserId,
-        })
-      );
-
       const incompleteToCreateUser = {
-        ...userIdentification,
-        ...userIdentification.data,
         ...writableUser,
+        ...userCredentials,
         role,
         id: toCreateUserId,
       };
@@ -71,6 +61,11 @@ export class GenericUserUseCases<T extends IUser> implements IGenericUserUseCase
       }
 
       const user = await this.write(toCreateUser);
+
+      const userIdentification = await this.userIdentificationServiceGateway.createUser(
+        userCredentials,
+        newUserIdentificationData(user)
+      );
 
       return {
         user,

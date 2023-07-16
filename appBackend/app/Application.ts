@@ -1,6 +1,7 @@
 import {
   AdminController,
   AdminInteractor,
+  CheckerGatewayAdapter,
   CollectionNames,
   CustomError,
   CustomErrorCodes,
@@ -11,6 +12,7 @@ import {
   GenericUserUseCases,
   IAdmin,
   IAdminUseCases,
+  ICheckerGatewayAdapter,
   IEmailSenderExternalInterfaceDriver,
   IEmailSenderServiceGateway,
   IGenericObjectPersistenceDriver,
@@ -31,8 +33,6 @@ import {
   JsonPresenterAdapter,
   UserIdentificationServiceGatewayAdapter,
 } from './_adapters';
-import { ICheckerGatewayAdapter } from './_adapters/_useCases/checker/ICheckerGatewayAdapter';
-import { CheckerGatewayAdapter } from './_adapters/checker/CheckerGatewayAdapter';
 
 export class Application {
   private static instance: Application;
@@ -160,7 +160,11 @@ export class Application {
       adminUseCases
     );
 
-    this.adminController = new AdminController(checkerServiceGateway, adminUseCases);
+    this.adminController = new AdminController(
+      checkerServiceGateway,
+      adminUseCases,
+      genericUserUseCases
+    );
   }
   public getJsonViewPresenter(): IJsonPresenter {
     return this.checkInitialized(this.jsonPresenter) as IJsonPresenter;

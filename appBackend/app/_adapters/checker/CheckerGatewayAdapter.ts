@@ -17,7 +17,13 @@ export class CheckerGatewayAdapter implements ICheckerGatewayAdapter {
     private userIdentificationServiceGateway: IUserIdentificationServiceGateway
   ) {}
 
-  public checkLoggedOut(userId: string): void {
+  public async checkLoggedOutOrAdmin(
+    userId: string
+  ): Promise<UserRoleEnum.USER | UserRoleEnum.ADMIN> {
+    if (await this.checkIfAdminOrContinue(userId)) {
+      return UserRoleEnum.ADMIN;
+    }
+
     if (userId) {
       throw new CustomError({
         code: CustomErrorCodes.LOGGED_IN,
@@ -25,9 +31,17 @@ export class CheckerGatewayAdapter implements ICheckerGatewayAdapter {
         status: 'failed-precondition',
       });
     }
+
+    return UserRoleEnum.USER;
   }
 
-  public checkLoggedIn(userId: string): void {
+  public async checkLoggedInOrAdmin(
+    userId: string
+  ): Promise<UserRoleEnum.USER | UserRoleEnum.ADMIN> {
+    if (await this.checkIfAdminOrContinue(userId)) {
+      return UserRoleEnum.ADMIN;
+    }
+
     if (!userId) {
       throw new CustomError({
         code: CustomErrorCodes.NOT_LOGGED_IN,
@@ -35,6 +49,26 @@ export class CheckerGatewayAdapter implements ICheckerGatewayAdapter {
         status: 'failed-precondition',
       });
     }
+
+    return UserRoleEnum.USER;
+  }
+
+  private async checkIfAdminOrContinue(userId: string): Promise<boolean> {
+    const allowedErrors = [CustomErrorCodes.MISSING_PRIVILEGES, CustomErrorCodes.USER_NOT_FOUND];
+
+    let mode = UserRoleEnum.USER;
+    try {
+      const adminUser = await this.checkAdmin(userId);
+      if (adminUser.givenRoles.includes(UserRoleEnum.ADMIN)) {
+        mode = UserRoleEnum.ADMIN;
+      }
+    } catch (e) {
+      const error = e as CustomError;
+      if (!allowedErrors.includes(error.code)) {
+        throw e;
+      }
+    }
+    return mode === UserRoleEnum.ADMIN;
   }
 
   public async checkUserById(userId: string): Promise<IUser> {
@@ -43,7 +77,7 @@ export class CheckerGatewayAdapter implements ICheckerGatewayAdapter {
     if (!user) {
       throw new CustomError({
         code: CustomErrorCodes.USER_NOT_FOUND,
-        message: `User with id ${userId} not found`,
+        message: `User with id <${userId}> not found`,
         status: 'not-found',
       });
     }
@@ -57,15 +91,37 @@ export class CheckerGatewayAdapter implements ICheckerGatewayAdapter {
     if (!admin) {
       throw new CustomError({
         code: CustomErrorCodes.USER_NOT_FOUND,
-        message: `User with id ${userId} not found`,
+        message: `SuperAdmin with id <${userId}> not found`,
         status: 'not-found',
       });
     }
 
-    if (admin.role !== UserRoleEnum.SUPER_ADMIN) {
+    if (!admin.givenRoles.includes(UserRoleEnum.SUPER_ADMIN)) {
       throw new CustomError({
         code: CustomErrorCodes.MISSING_PRIVILEGES,
         message: 'You must be a SUPER_USER to perform this action',
+        status: 'failed-precondition',
+      });
+    }
+
+    return admin;
+  }
+
+  public async checkAdmin(userId: string): Promise<IAdmin> {
+    const admin = await this.adminPersistenceGateway.read(userId);
+
+    if (!admin) {
+      throw new CustomError({
+        code: CustomErrorCodes.USER_NOT_FOUND,
+        message: `Admin with id ${userId} not found`,
+        status: 'not-found',
+      });
+    }
+
+    if (!admin.givenRoles.includes(UserRoleEnum.ADMIN)) {
+      throw new CustomError({
+        code: CustomErrorCodes.MISSING_PRIVILEGES,
+        message: 'You must be a ADMIN to perform this action',
         status: 'failed-precondition',
       });
     }
@@ -79,7 +135,7 @@ export class CheckerGatewayAdapter implements ICheckerGatewayAdapter {
     if (!userIdentification) {
       throw new CustomError({
         code: CustomErrorCodes.USER_IDENTIFICATION_NOT_FOUND,
-        message: `User with id ${userId} not found`,
+        message: `User Identification with id ${userId} not found`,
         status: 'not-found',
       });
     }

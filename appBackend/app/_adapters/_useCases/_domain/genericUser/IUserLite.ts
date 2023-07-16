@@ -10,7 +10,7 @@ export const newUserLite = (object?: DeepPartial<ThisInterface>): ThisInterface 
     lastName: object?.lastName ?? '',
     mainLanguage: object?.mainLanguage ?? 'en',
     objectType: ObjectTypesEnum.USER_LITE,
-    role: object?.role ?? UserRoleEnum.NONE,
+    role: object?.role ?? UserRoleEnum.USER,
     thumbnailUrl: object?.thumbnailUrl ?? '',
   };
 

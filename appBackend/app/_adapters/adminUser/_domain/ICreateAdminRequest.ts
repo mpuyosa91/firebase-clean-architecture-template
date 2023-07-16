@@ -1,6 +1,6 @@
 import {
   checkWithEmail,
-  checkWithIdRequest,
+  checkWithId,
   checkWithPassword,
   checkWritableAdminRequest,
   DeepPartial,
@@ -28,7 +28,7 @@ export const checkCreateAdminRequest = (
 
   return {
     admin: {
-      ...checkWithIdRequest(request.admin, 'admin.'),
+      ...checkWithId(request.admin, 'admin.'),
       ...checkWithEmail(request.admin, 'admin.'),
       ...checkWithPassword(request.admin, 'admin.'),
       ...checkWritableAdminRequest(request.admin, 'admin.'),

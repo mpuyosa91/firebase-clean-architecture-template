@@ -8,13 +8,7 @@ export const newArray = <T extends DeepPartial<R>, R>(
 ): R[] =>
   object
     ?.filter((value): value is T => value !== undefined)
-    .map((value) => {
-      if (mapper) {
-        return mapper(value);
-      }
-
-      return value as unknown as R;
-    }) ?? [];
+    .map((value) => (mapper ? mapper(value) : (value as unknown as R))) ?? [];
 
 export const newObject = <T extends DeepPartial<R>, R>(
   object?: { [key: string]: T | undefined },
@@ -22,13 +16,9 @@ export const newObject = <T extends DeepPartial<R>, R>(
 ): { [key: string]: R } =>
   Object.entries(object ?? {}).reduce((acc: Record<string, R>, [key, value]) => {
     if (value !== undefined) {
-      if (mapper) {
-        acc[key] = mapper(value);
-      } else if (typeof value === 'object') {
-        acc[key] = newObject(value) as unknown as R;
-      } else {
-        acc[key] = value;
-      }
+      acc[key] = mapper
+        ? mapper(value)
+        : (acc[key] = typeof value === 'object' ? (newObject(value) as unknown as R) : value);
     }
     return acc;
   }, {});

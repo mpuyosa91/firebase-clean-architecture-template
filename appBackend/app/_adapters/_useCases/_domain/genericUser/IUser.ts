@@ -3,7 +3,7 @@ import { IPublicUser, newPublicUser } from './IPublicUser';
 import { IWritableUser, newWritableUser } from './IWritableUser';
 import { ObjectTypesEnum } from '../enums';
 import { IUserLite, newUserLite } from './IUserLite';
-import { IWithEmail, newWithEmail } from '../userIdentification';
+import { IWithEmail, newWithEmail, UserRoleEnum } from '../userIdentification';
 
 type ThisInterface = IUser;
 export const newUser = (object?: DeepPartial<ThisInterface>): ThisInterface => {
@@ -14,6 +14,7 @@ export const newUser = (object?: DeepPartial<ThisInterface>): ThisInterface => {
     ...newWritableUser(object),
     ...newWithEmail(object),
     objectType: ObjectTypesEnum.USER,
+    role: UserRoleEnum.USER,
   };
 
   return toReturnObject;

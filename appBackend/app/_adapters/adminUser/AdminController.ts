@@ -1,16 +1,17 @@
 import {
-  CustomError,
-  CustomErrorCodes,
   IAdminUseCases,
   ICheckerGatewayAdapter,
   ICreateAdminResponse,
+  IGenericUserUseCases,
+  IUser,
 } from '../_useCases';
 import { checkCreateAdminRequest } from './_domain/ICreateAdminRequest';
 
 export class AdminController {
   constructor(
     private checkerServiceGateway: ICheckerGatewayAdapter,
-    private adminUseCases: IAdminUseCases
+    private adminUseCases: IAdminUseCases,
+    private genericUserUseCases: IGenericUserUseCases<IUser>
   ) {}
 
   public async createSuperAdmin(_: any, __: string): Promise<ICreateAdminResponse> {

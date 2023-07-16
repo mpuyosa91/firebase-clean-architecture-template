@@ -1,5 +1,6 @@
 export * from './_useCases';
 export * from './adminUser';
+export * from './checker';
 export * from './emailSender';
 export * from './genericUser';
 export * from './jsonHelper';

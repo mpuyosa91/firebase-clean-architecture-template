@@ -1,27 +1,38 @@
 import {
   CollectionNames,
-  CustomError,
   CustomErrorCodes,
   DeepPartial,
   ICreateUserRequest,
   ISearchEngineUser,
+  IUpdateUserRequest,
+  IUser,
   newFakeCreateUserRequest,
+  UserRoleEnum,
 } from '../app';
-import { faker } from '@faker-js/faker';
 import {
+  fastCreateUser,
   genericObjectPersistenceDriverFactory,
   genericObjectSearchEngineDriverFactory,
   getGenericUserController,
+  testFunction,
   userIdentificationExternalInterfaceDriver,
 } from './testDrivers/CreateMockApplication';
-import { IUpdateUserRequest } from '../app/_adapters/genericUser/_domain/IUpdateUserRequest';
+import { faker } from '@faker-js/faker';
 import { cloneDeep } from 'lodash';
 
 describe('GenericUserController', () => {
   test('GUC001. Create User', async () => {
     const request = newFakeCreateUserRequest();
 
-    await testCreateUser(request, '');
+    const { user, userIdentification } = await getGenericUserController().createUser(request, '');
+
+    expect(user.role).toBe(UserRoleEnum.USER);
+    expect(user.email).toBe(request.email);
+    expect(user.firstName).toBe(request.user.firstName);
+
+    expect(userIdentification.data?.role).toBe(UserRoleEnum.USER);
+    expect(userIdentification.email).toBe(request.email);
+    expect(userIdentification.data?.firstName).toBe(request.user.firstName);
   });
 
   test('GUC001_1. Can not if logged In', async () => {
@@ -52,10 +63,23 @@ describe('GenericUserController', () => {
     await testCreateUser(request, '', CustomErrorCodes.BAD_FORMAT_ARGUMENT);
   });
 
-  test('GUC002. Retrieve User', async () => {
-    const { user } = await getGenericUserController().createUser(newFakeCreateUserRequest(), '');
+  test('GUC001_5. User may have one given role', async () => {
+    const user = await fastCreateUser();
 
-    await testRetrieveUser(user.id);
+    const userDocument = await genericObjectPersistenceDriverFactory
+      .getDB<IUser>(CollectionNames.USERS)
+      .read(user.id);
+
+    expect(userDocument).toBeTruthy();
+    expect(userDocument?.givenRoles).toStrictEqual([UserRoleEnum.USER]);
+  });
+
+  test('GUC002. Retrieve User', async () => {
+    const user = await fastCreateUser();
+
+    const response = await testRetrieveUser(user.id);
+
+    expect(response?.user).toBeTruthy();
   });
 
   test('GUC002_1. Can not retrieve being logged out', async () => {
@@ -63,7 +87,7 @@ describe('GenericUserController', () => {
   });
 
   test('GUC002_2. User not found notification', async () => {
-    const { user } = await getGenericUserController().createUser(newFakeCreateUserRequest(), '');
+    const user = await fastCreateUser();
 
     await genericObjectPersistenceDriverFactory.getDB(CollectionNames.USERS).delete(user.id);
 
@@ -71,7 +95,7 @@ describe('GenericUserController', () => {
   });
 
   test('GUC002_3. User Identification not found notification', async () => {
-    const { user } = await getGenericUserController().createUser(newFakeCreateUserRequest(), '');
+    const user = await fastCreateUser();
 
     await userIdentificationExternalInterfaceDriver.deleteUser(user.id);
 
@@ -79,7 +103,7 @@ describe('GenericUserController', () => {
   });
 
   test('GUC002_4. User can be found on SearchEngine', async () => {
-    const { user } = await getGenericUserController().createUser(newFakeCreateUserRequest(), '');
+    const user = await fastCreateUser();
 
     const searchEngineUser = cloneDeep(
       await genericObjectSearchEngineDriverFactory
@@ -92,19 +116,19 @@ describe('GenericUserController', () => {
   });
 
   test('GUC003. Update User', async () => {
-    const { user } = await getGenericUserController().createUser(newFakeCreateUserRequest(), '');
+    const user = await fastCreateUser();
 
     const request: DeepPartial<IUpdateUserRequest> = {
       user: { firstName: faker.person.firstName() },
     };
-    const response = await testUpdateUser(request, user.id);
+    const { user: updatedUser } = await getGenericUserController().updateUser(request, user.id);
 
-    expect(response).toBeTruthy();
-    expect(user.firstName).not.toBe(response?.user.firstName);
+    expect(updatedUser).toBeTruthy();
+    expect(user.firstName).not.toBe(updatedUser.firstName);
   });
 
   test('GUC003_1. Update can be found on SearchEngine', async () => {
-    const { user } = await getGenericUserController().createUser(newFakeCreateUserRequest(), '');
+    const user = await fastCreateUser();
 
     const searchEngineUserBefore = cloneDeep(
       await genericObjectSearchEngineDriverFactory
@@ -112,10 +136,10 @@ describe('GenericUserController', () => {
         .read(user.id)
     );
 
-    const request: DeepPartial<IUpdateUserRequest> = {
-      user: { firstName: faker.person.firstName() },
-    };
-    const response = await getGenericUserController().updateUser(request, user.id);
+    const response = await getGenericUserController().updateUser(
+      { user: { firstName: faker.person.firstName() } },
+      user.id
+    );
 
     const searchEngineUserAfter = cloneDeep(
       await genericObjectSearchEngineDriverFactory
@@ -134,14 +158,8 @@ describe('GenericUserController', () => {
   });
 
   test('GUC003_2. Can not update if an existing email', async () => {
-    const { user: user1 } = await getGenericUserController().createUser(
-      newFakeCreateUserRequest(),
-      ''
-    );
-    const { user: user2 } = await getGenericUserController().createUser(
-      newFakeCreateUserRequest(),
-      ''
-    );
+    const user1 = await fastCreateUser();
+    const user2 = await fastCreateUser();
 
     const request: DeepPartial<IUpdateUserRequest> = {
       email: user1.email,
@@ -150,13 +168,13 @@ describe('GenericUserController', () => {
   });
 
   test('GUC004. Delete User', async () => {
-    const { user } = await getGenericUserController().createUser(newFakeCreateUserRequest(), '');
+    const user = await fastCreateUser();
 
     await testDeleteUser(user.id);
   });
 
   test('GUC004_1. Can not delete user twice', async () => {
-    const { user } = await getGenericUserController().createUser(newFakeCreateUserRequest(), '');
+    const user = await fastCreateUser();
 
     await testDeleteUser(user.id);
 
@@ -164,7 +182,7 @@ describe('GenericUserController', () => {
   });
 
   test('GUC004_2. Already deleted if User Identification is deleted', async () => {
-    const { user } = await getGenericUserController().createUser(newFakeCreateUserRequest(), '');
+    const user = await fastCreateUser();
 
     await userIdentificationExternalInterfaceDriver.deleteUser(user.id);
 
@@ -172,7 +190,7 @@ describe('GenericUserController', () => {
   });
 
   test('GUC004_3. Already deleted if User Object is deleted', async () => {
-    const { user } = await getGenericUserController().createUser(newFakeCreateUserRequest(), '');
+    const user = await fastCreateUser();
 
     await genericObjectPersistenceDriverFactory.getDB(CollectionNames.USERS).delete(user.id);
 
@@ -184,46 +202,21 @@ describe('GenericUserController', () => {
     userId: string,
     customErrorCodes?: CustomErrorCodes
   ) {
-    try {
-      const response = await getGenericUserController().createUser(request, userId);
-
-      !customErrorCodes ? expect(response.user).toBeTruthy() : expect(response).toBeFalsy();
-
-      if (!customErrorCodes) {
-        expect(request.email).toBe(response.userIdentification.email);
-        expect(request.email).toBe(response.user.email);
-        expect(request.user.firstName).toBe(response.userIdentification.data?.firstName);
-        expect(request.user.firstName).toBe(response.user.firstName);
-      }
-
-      return response;
-    } catch (e) {
-      const error = e as CustomError;
-      try {
-        !customErrorCodes ? expect(error).toBeFalsy() : expect(error.code).toBe(customErrorCodes);
-      } catch (assertionError) {
-        console.error(error);
-        throw assertionError;
-      }
-    }
+    return testFunction(
+      request,
+      userId,
+      (request, userId) => getGenericUserController().createUser(request, userId),
+      customErrorCodes
+    );
   }
 
   async function testRetrieveUser(userId: string, customErrorCodes?: CustomErrorCodes) {
-    try {
-      const response = await getGenericUserController().retrieveUser({}, userId);
-
-      !customErrorCodes ? expect(response.user).toBeTruthy() : expect(response).toBeFalsy();
-
-      return response;
-    } catch (e) {
-      const error = e as CustomError;
-      try {
-        !customErrorCodes ? expect(error).toBeFalsy() : expect(error.code).toBe(customErrorCodes);
-      } catch (assertionError) {
-        console.error(error);
-        throw assertionError;
-      }
-    }
+    return testFunction(
+      {},
+      userId,
+      (request, userId) => getGenericUserController().retrieveUser(request, userId),
+      customErrorCodes
+    );
   }
 
   async function testUpdateUser(
@@ -231,38 +224,20 @@ describe('GenericUserController', () => {
     userId: string,
     customErrorCodes?: CustomErrorCodes
   ) {
-    try {
-      const response = await getGenericUserController().updateUser(request, userId);
-
-      !customErrorCodes ? expect(response.user).toBeTruthy() : expect(response).toBeFalsy();
-
-      return response;
-    } catch (e) {
-      const error = e as CustomError;
-      try {
-        !customErrorCodes ? expect(error).toBeFalsy() : expect(error.code).toBe(customErrorCodes);
-      } catch (assertionError) {
-        console.error(error);
-        throw assertionError;
-      }
-    }
+    return testFunction(
+      request,
+      userId,
+      (request, userId) => getGenericUserController().updateUser(request, userId),
+      customErrorCodes
+    );
   }
 
   async function testDeleteUser(userId: string, customErrorCodes?: CustomErrorCodes) {
-    try {
-      const response = await getGenericUserController().deleteUser({}, userId);
-
-      !customErrorCodes ? expect(response).toBeTruthy() : expect(response).toBeFalsy();
-
-      return response;
-    } catch (e) {
-      const error = e as CustomError;
-      try {
-        !customErrorCodes ? expect(error).toBeFalsy() : expect(error.code).toBe(customErrorCodes);
-      } catch (assertionError) {
-        console.error(error);
-        throw assertionError;
-      }
-    }
+    return testFunction(
+      {},
+      userId,
+      (request, userId) => getGenericUserController().deleteUser(request, userId),
+      customErrorCodes
+    );
   }
 });

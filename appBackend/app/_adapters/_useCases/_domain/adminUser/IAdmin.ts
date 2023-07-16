@@ -12,7 +12,7 @@ export const newAdmin = (object?: DeepPartial<ThisInterface>): ThisInterface => 
     ...newWritableAdmin(object),
     ...newWithChatRoomInfo(object),
     objectType:
-      object?.objectType === ObjectTypesEnum.SUPER_ADMIN
+      object?.role === UserRoleEnum.SUPER_ADMIN
         ? ObjectTypesEnum.SUPER_ADMIN
         : ObjectTypesEnum.ADMIN,
     role: object?.role === UserRoleEnum.SUPER_ADMIN ? UserRoleEnum.SUPER_ADMIN : UserRoleEnum.ADMIN,

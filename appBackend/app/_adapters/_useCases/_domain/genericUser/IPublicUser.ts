@@ -1,22 +1,17 @@
-import {
-  DeepPartial,
-  IPublicGenericObject,
-  newArray,
-  newPublicGenericObject,
-} from '../genericObject';
+import { DeepPartial, IPublicGenericObject, newPublicGenericObject } from '../genericObject';
 import { IWritablePublicUser, newWritablePublicUser } from './IWritablePublicUser';
 import { ObjectTypesEnum } from '../enums';
 import { UserRoleEnum } from '../userIdentification';
-import _ from 'lodash';
+import { IWithRole, newWithRole } from './IWithRole';
 
 type ThisInterface = IPublicUser;
 export const newPublicUser = (object?: DeepPartial<ThisInterface>): ThisInterface => {
   const toReturnObject: ThisInterface = {
     ...newPublicGenericObject(object),
     ...newWritablePublicUser(object),
-    givenRoles: newArray(object?.givenRoles),
+    ...newWithRole(object),
     objectType: ObjectTypesEnum.PUBLIC_USER,
-    role: object?.role ?? UserRoleEnum.NONE,
+    role: object?.role ?? UserRoleEnum.USER,
     thumbnailUrl: object?.thumbnailUrl ?? '',
   };
 
@@ -24,24 +19,12 @@ export const newPublicUser = (object?: DeepPartial<ThisInterface>): ThisInterfac
 
   toReturnObject.thumbnailUrl = toReturnObject.avatarUrl ?? '';
 
-  toReturnObject.givenRoles = _.uniq(toReturnObject.givenRoles.concat(toReturnObject.role));
-
   return toReturnObject;
 };
 
-export interface IPublicUser extends IPublicGenericObject, IWritablePublicUser {
+export interface IPublicUser extends IPublicGenericObject, IWritablePublicUser, IWithRole {
   /**
    * @default ''
    */
   thumbnailUrl: string;
-
-  /**
-   * @default NONE
-   */
-  role: UserRoleEnum;
-
-  /**
-   * @default []
-   */
-  givenRoles: string[];
 }
